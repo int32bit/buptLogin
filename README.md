@@ -6,6 +6,7 @@
 ====
 
 使用./autoLogin.py -h 查看帮助信息。
+```sh
 usage: ./autoLogin.sh [-u username] [-p password] [-i ip] [-h][-t]
 	-u username
 	-p password
@@ -26,7 +27,7 @@ optional arguments:
   -H HOST, --host HOST  The remote address, 'http://10.3.8.211' by default.
   -c, --logout          Logout
   -v, --version         show program's version number and exit
-
+```
 
 版本
 ====
