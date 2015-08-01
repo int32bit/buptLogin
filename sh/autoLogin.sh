@@ -1,15 +1,14 @@
 #!/bin/bash
-#set -x
 declare -f showHelp
 declare -f isReachable 
 SERVER=10.3.8.211 # Change this value!
 showHelp()
 {
 cat <<EOF
-usage: $0 [-u username] [-p password] [-i ip] [-h][-t]
+usage: $0 [-u username] [-p password] [-s url] [-h][-t]
 	-u username
 	-p password
-	-i remote server login IP
+	-s authentication server, default 10.3.8.211
 	-h display this help and exit
 	-t test the current network state and exit
 EOF
@@ -18,8 +17,15 @@ exit 1
 isReachable()
 {
     ADDR=${1:-baidu.com}
-    ping -c 1 -w 2 $ADDR &>/dev/null
-    return $?
+    if which curl &>/dev/null
+    then
+	    curl -i $ADDR 2>/dev/null | head -n 1 | grep -q "200 OK"
+	    return $?
+    else
+	    # FIXME ICMP may be disabled ?
+	    ping -c 1 -w 2 $ADDR &>/dev/null
+	    return $?
+    fi
 }
 parseOpts()
 {
@@ -36,7 +42,7 @@ parseOpts()
                 showHelp
                 exit 0
                 ;;
-            i)
+            s)
                 SERVER=$OPTARG
                 ;;
             t)
@@ -57,12 +63,12 @@ parseOpts()
 }
 inputUserName()
 {
-    read -p "Please type your userId: " ID
+	read -p "Please type your username(学号): " ID
 }
 inputPassword()
 {
 	stty -echo
-	read -p"Please type your password: " PASSWORD
+	read -p"Please type your password(密码): " PASSWORD
 	stty echo
 	echo
 }
@@ -70,8 +76,7 @@ getRequest()
 {
     if [ $# -lt 1 ]
     then
-        echo "Request address required!"
-        echo "Usage $0 address"
+        echo "Usage $0 <url>"
         exit 1
     fi
     ADDRESS=$1
@@ -81,8 +86,7 @@ postRequest()
 {
     if [ $# -lt 2]
     then
-        echo "Both address and data are required!"
-        echo "Usage $0 data address"
+        echo "Usage $0 <data> <url>"
         echo "For example: postRequest 'a=1&b=2' example.com"
         exit 1
     fi
@@ -103,19 +107,44 @@ login()
     fi
     if ! isReachable $SERVER
     then
-        echo "Cann't connect to server!"
+        echo "Cann't connect to authentication server!"
         exit 1
     fi
     [ x$ID == x ] && inputUserName
     [ x$PASSWORD == x ] && inputPassword
     postRequest "DDDDD=$ID&upass=$PASSWORD&save_me=1&R1=0" "$SERVER" &>/dev/null
 }
+checkDeps()
+{
+	declare -a deps
+	deps=('curl')
+	for package in ${deps[@]}
+	do
+		if ! which $package &>/dev/null
+		then
+			read -p "$package is not installed, now install? (y/n):" YES
+			if [[ x$YES != xy ]]
+			then
+				echo "'$package' is not installed, exit..."
+				exit 1
+			else
+				sudo apt-get -y install $package
+				if ! which $package &>/dev/null
+				then
+					echo "Failed to install '$package', exit..."
+					exit 1
+				fi
+			fi
+		fi
+	done
+}
 main()
 {
+    checkDeps
     parseOpts $@
     if isReachable baidu.com
     then
-        echo "The current network is OK, You should't login again!"
+        echo "The network is OK!"
         exit 0
     fi
     login

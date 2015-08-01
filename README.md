@@ -6,13 +6,14 @@
 ====
 
 使用./autoLogin.py -h 查看帮助信息。
+
 ```sh
-usage: ./autoLogin.sh [-u username] [-p password] [-i ip] [-h][-t]
+usage: ./autoLogin.sh [-u username] [-p password] [-s ip] [-h][-t]
 	-u username
 	-p password
-	-i remote server login IP
+	-s suthentication server
 	-h display this help and exit
-	-t test the current network if available  and exit
+	-t test the current network if available and exit
 usage: autoLogin.py [-h] [-t] [-u USER] [-p PASSWORD] [-f FILE] [-H HOST] [-c]
                     [-v]
 
